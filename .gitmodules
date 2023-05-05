@@ -1,0 +1,4 @@
+[submodule "thirdparty"]
+	path = thirdparty
+	url = https://github.com/apache/logging-log4cxx.git
+	branch = master

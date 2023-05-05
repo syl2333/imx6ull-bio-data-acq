@@ -1,48 +1,58 @@
 #include <iostream>
 #include "httplib.h"
 #include "sqlite3.h"
-//#include "sqlite3ext.h"
+
+#include "db.h"
+#include "log.h"
 
 void hello_handler(const httplib::Request &req, httplib::Response &res) {
     res.set_content("Hello, World!", "text/plain");
 }
 
-sqlite3* db;
-int rc;
+
 
 int main()
 {
-    char* errMsg = nullptr;
-    rc = sqlite3_open("local.db",&db);
-
-       const char* createTableSql = "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name TEXT NOT NULL);";
-    rc = sqlite3_exec(db, createTableSql, 0, 0, &errMsg);
-    if (rc != SQLITE_OK) {
-        std::cerr << "SQL error: " << errMsg << std::endl;
-        sqlite3_free(errMsg);
-    }
-
-    // 插入数据
-    const char* insertDataSql = "INSERT INTO users (name) VALUES ('Alice');";
-    rc = sqlite3_exec(db, insertDataSql, 0, 0, &errMsg);
-    if (rc != SQLITE_OK) {
-        std::cerr << "SQL error: " << errMsg << std::endl;
-        sqlite3_free(errMsg);
-    }
-
-    // 查询数据
-    // const char* selectDataSql = "SELECT * FROM users;";
-    // rc = sqlite3_exec(db, selectDataSql, callback, 0, &errMsg);
-    // if (rc != SQLITE_OK) {
-    //     std::cerr << "SQL error: " << errMsg << std::endl;
-    //     sqlite3_free(errMsg);
-    // }
-
-    // 关闭数据库连接
-    sqlite3_close(db);
-
+    log4cpp_init();
+    
+    SQLiteWrapper db("local.db");
+    db.init_tables();
+    // std::string name;
+    // std::cin >> name;
+    // std::cout << db.query_password_by_name(name) << std::endl;
     httplib::Server Server;
-    Server.Get("/",hello_handler);
+
+    //解决跨域问题
+    Server.set_pre_routing_handler([](const httplib::Request &req, httplib::Response &res) -> httplib::Server::HandlerResponse {
+        // 添加CORS相关响应头
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+
+        if (req.method == "OPTIONS") {
+            res.status = 204;
+            return httplib::Server::HandlerResponse::Handled; // 不继续执行后续的请求处理器
+        }
+
+        return httplib::Server::HandlerResponse::Unhandled; // 继续执行后续的请求处理器
+    });
+    Server.Get("/hello",hello_handler);
+    Server.Post("/login", [&db](const httplib::Request &req, httplib::Response &res) {
+        auto username = req.get_param_value("username");
+        auto password = req.get_param_value("password");
+
+        // 处理用户名和密码，例如验证或存储等
+        category.infoStream() << "Username: " << username;
+        category.infoStream() << "Password: " << password;
+        
+        auto ret = db.verifyUserPassword(username,password);
+        if(ret)
+        {
+            // 返回响应
+            res.set_content("Login request received", "text/plain");
+        }
+        
+    });
     std::cout << "httplib listening on http://127.0.0.1:8000" << std::endl;
     Server.listen("localhost",8000);
 
