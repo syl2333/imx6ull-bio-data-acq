@@ -5,6 +5,10 @@
 #include "db.h"
 #include "log.h"
 
+#include "nlohmann/json.hpp"
+
+using json = nlohmann::json;
+
 void hello_handler(const httplib::Request &req, httplib::Response &res) {
     res.set_content("Hello, World!", "text/plain");
 }
@@ -13,13 +17,14 @@ void hello_handler(const httplib::Request &req, httplib::Response &res) {
 
 int main()
 {
-    log4cpp_init();
-    
+    //log4cpp_init();
+    Logger::getInstance().info("This is an info log message.");
     SQLiteWrapper db("local.db");
     db.init_tables();
-    // std::string name;
-    // std::cin >> name;
-    // std::cout << db.query_password_by_name(name) << std::endl;
+
+    json parsedBody;
+ 
+
     httplib::Server Server;
 
     //解决跨域问题
@@ -37,14 +42,18 @@ int main()
         return httplib::Server::HandlerResponse::Unhandled; // 继续执行后续的请求处理器
     });
     Server.Get("/hello",hello_handler);
-    Server.Post("/login", [&db](const httplib::Request &req, httplib::Response &res) {
+    Server.Post("/login", [&db,&parsedBody](const httplib::Request &req, httplib::Response &res) {
         auto username = req.get_param_value("username");
         auto password = req.get_param_value("password");
-
+        Logger::getInstance().infoStream() << req.body << username;
+        try {
+            parsedBody = json::parse(req.body);
+        } catch (const json::parse_error& e) {
+            Logger::getInstance().errorStream() << "JSON解析错误: " << e.what();
+        }
         // 处理用户名和密码，例如验证或存储等
-        category.infoStream() << "Username: " << username;
-        category.infoStream() << "Password: " << password;
-        
+        Logger::getInstance().infoStream() << "Username: " << parsedBody["username"];
+        Logger::getInstance().infoStream() << "Password: " << parsedBody["password"];
         auto ret = db.verifyUserPassword(username,password);
         if(ret)
         {

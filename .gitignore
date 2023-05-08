@@ -3,3 +3,4 @@
 /backend/build/
 /frontend/dist/
 /frontend/node_modules/
+/backend/.vscode/

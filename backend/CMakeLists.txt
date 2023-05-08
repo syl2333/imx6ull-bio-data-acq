@@ -6,7 +6,7 @@ project(imx-backend LANGUAGES CXX)
 
 
 
-add_executable(imx-backend src/main.cpp src/db.cpp src/log.cpp)
+add_executable(imx-backend src/main.cpp src/db.cpp src/log.cpp src/server.cpp)
 
 find_package(SQLite3)
 include_directories(${SQLITE3_INCLUDE_DIRS})
@@ -18,5 +18,7 @@ pkg_check_modules(LOG4CPP REQUIRED log4cpp)
 # 将 log4cpp 库的头文件目录添加到项目的 include 路径中
 include_directories(${LOG4CPP_INCLUDE_DIRS})
 target_link_libraries(imx-backend ${LOG4CPP_LIBRARIES})
-
+# 搜索 nlohmann/json 库
+find_package(nlohmann_json REQUIRED)
+target_link_libraries(imx-backend  nlohmann_json::nlohmann_json)
 target_include_directories(imx-backend PUBLIC ./thirdparty/cpp-httplib/)

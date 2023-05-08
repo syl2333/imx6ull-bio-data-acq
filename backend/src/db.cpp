@@ -32,15 +32,15 @@ bool SQLiteWrapper::init_tables()
     {
         
         sprintf(errStr,"sql语句执行失败，位于%s:%d",__FILE__,__LINE__);
-        category.error(errStr);
+        Logger::getInstance().error(errStr);
     }
     if(found)
     {
-        category.info("在本地sqlite数据库中发现用户名-密码数据表！");
+        Logger::getInstance().info("在本地sqlite数据库中发现用户名-密码数据表！");
     }
     else
     {
-        category.info("在本地sqlite数据库中未发现用户名-密码数据表！");
+        Logger::getInstance().info("在本地sqlite数据库中未发现用户名-密码数据表！");
 
         std::string createUsersPasswdTableSql = " \
             CREATE TABLE IF NOT EXISTS users_passwd ( \
@@ -54,12 +54,12 @@ bool SQLiteWrapper::init_tables()
         ret = sqlite3_exec(m_db,createUsersPasswdTableSql.c_str(),0,0,&errMsg);
         if(ret != SQLITE_OK)
         {
-            category.error("无法在本地sqlite数据库创建用户名-密码数据表！");
-            category.error(errMsg);
+            Logger::getInstance().error("无法在本地sqlite数据库创建用户名-密码数据表！");
+            Logger::getInstance().error(errMsg);
             return false;
         }
         
-        category.info("用户名-密码数据表创建成功");
+        Logger::getInstance().info("用户名-密码数据表创建成功");
     }
 
     std::string isExistSuperUserSql = "\
@@ -70,13 +70,13 @@ bool SQLiteWrapper::init_tables()
     if(ret != SQLITE_OK)
     {
         sprintf(errStr,"sql语句执行失败，位于%s:%d",__FILE__,__LINE__);
-        category.error(errMsg);
-        category.error(errStr);
+        Logger::getInstance().error(errMsg);
+        Logger::getInstance().error(errStr);
         return false;
     }
     if(found)
     {
-        category.info("在用户名-密码数据表中发现超级用户");
+        Logger::getInstance().info("在用户名-密码数据表中发现超级用户");
     }
     else
     {
@@ -87,12 +87,12 @@ bool SQLiteWrapper::init_tables()
 
         if(ret != SQLITE_OK)
         {
-            category.error("无法在本地sqlite数据库创建超级用户！");
-            category.error(errMsg);
+            Logger::getInstance().error("无法在本地sqlite数据库创建超级用户！");
+            Logger::getInstance().error(errMsg);
             return false;
         }
         
-        category.info("在本地sqlite数据库创建超级用户成功");
+        Logger::getInstance().info("在本地sqlite数据库创建超级用户成功");
     }
     
     return true;
@@ -113,11 +113,11 @@ bool SQLiteWrapper::open(const std::string &db_name)
     if(ret != SQLITE_OK)
     {
         //todo 使用log4cpp库记录
-        category.error("无法打开本地sqlite数据库！");
+        Logger::getInstance().error("无法打开本地sqlite数据库！");
         return false;
     }
     
-    category.info("打开本地sqlite数据库");
+    Logger::getInstance().info("打开本地sqlite数据库");
     return true;
 }
 
@@ -128,13 +128,13 @@ std::string SQLiteWrapper::query_password_by_name(const std::string &name)
     sqlite3_stmt *stmt;
 
     if (sqlite3_prepare_v2(m_db, sql_query.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
-        category.errorStream() << "无法准备查询语句: " << sqlite3_errmsg(m_db);
+        Logger::getInstance().errorStream() << "无法准备查询语句: " << sqlite3_errmsg(m_db);
         return "";
     }
 
     // 绑定参数（防止SQL注入攻击）
     if (sqlite3_bind_text(stmt, 1, name.c_str(), -1, SQLITE_TRANSIENT) != SQLITE_OK) {
-        category.errorStream() << "无法绑定参数: " << sqlite3_errmsg(m_db);
+        Logger::getInstance().errorStream() << "无法绑定参数: " << sqlite3_errmsg(m_db);
         sqlite3_finalize(stmt);
         return "";
     }
@@ -144,7 +144,7 @@ std::string SQLiteWrapper::query_password_by_name(const std::string &name)
     if (rc == SQLITE_ROW) {
         password = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 0));
     } else if (rc != SQLITE_DONE) {
-        category.errorStream() << "查询执行错误: " << sqlite3_errmsg(m_db);
+        Logger::getInstance().errorStream() << "查询执行错误: " << sqlite3_errmsg(m_db);
     }
 
     sqlite3_finalize(stmt);
