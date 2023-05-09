@@ -43,24 +43,34 @@ int main()
     });
     Server.Get("/hello",hello_handler);
     Server.Post("/login", [&db,&parsedBody](const httplib::Request &req, httplib::Response &res) {
-        auto username = req.get_param_value("username");
-        auto password = req.get_param_value("password");
-        Logger::getInstance().infoStream() << req.body << username;
         try {
             parsedBody = json::parse(req.body);
         } catch (const json::parse_error& e) {
             Logger::getInstance().errorStream() << "JSON解析错误: " << e.what();
         }
         // 处理用户名和密码，例如验证或存储等
-        Logger::getInstance().infoStream() << "Username: " << parsedBody["username"];
-        Logger::getInstance().infoStream() << "Password: " << parsedBody["password"];
+        auto username = parsedBody["username"];
+        auto password = parsedBody["password"];
+        Logger::getInstance().infoStream() << "Username: " << username;
+        Logger::getInstance().infoStream() << "Password: " << password;
         auto ret = db.verifyUserPassword(username,password);
+
+        json responseJson;
+        //res.set_content_type("application/json");
+        res.set_header("Content-Type", "application/json");
         if(ret)
         {
+            responseJson["status"] = "success";
+            responseJson["message"] = "登陆成功";
             // 返回响应
-            res.set_content("Login request received", "text/plain");
+            res.set_content(responseJson.dump().c_str(), "application/json");
+            return res;
         }
-        
+        res.status = 401;
+        responseJson["status"] = "error";
+        responseJson["message"] = "登陆失败，用户名或密码错误";
+        res.set_content(responseJson.dump().c_str(), "application/json");
+        return res;
     });
     std::cout << "httplib listening on http://127.0.0.1:8000" << std::endl;
     Server.listen("localhost",8000);

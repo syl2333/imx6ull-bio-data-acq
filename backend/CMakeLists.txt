@@ -1,11 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 project(imx-backend LANGUAGES CXX)
 
-
-
-
-
-
 add_executable(imx-backend src/main.cpp src/db.cpp src/log.cpp src/server.cpp)
 
 find_package(SQLite3)

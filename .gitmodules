@@ -2,3 +2,11 @@
 	path = thirdparty
 	url = https://github.com/apache/logging-log4cxx.git
 	branch = master
+[submodule "backend/thirdparty/httplib"]
+	path = backend/thirdparty/httplib
+	url = https://github.com/yhirose/cpp-httplib.git
+	branch = master
+[submodule "backend/thirdparty/cpp-httplib"]
+	path = backend/thirdparty/cpp-httplib
+	url = https://github.com/yhirose/cpp-httplib.git
+	branch = master
