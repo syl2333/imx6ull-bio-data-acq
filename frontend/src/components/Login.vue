@@ -5,7 +5,9 @@
     <v-text-field v-model="password" label="密码" type="password"></v-text-field>
     <v-btn @click="login" color="primary">登陆</v-btn>
   </v-card>
-  <i class="fas fa-home"></i>
+  <v-icon icon="fas fa-plus" />
+  <v-icon icon="mdi:mdi-minus" />
+  <v-icon icon="fas fa-home" />
 </template>
   
 <script>

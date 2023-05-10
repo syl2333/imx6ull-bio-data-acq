@@ -1,7 +1,6 @@
 <template>
-    <div>
-        <SlideBar></SlideBar>
-    </div>
+    <SlideBar></SlideBar>
+    <router-view></router-view>
 </template>
   
 <script>
