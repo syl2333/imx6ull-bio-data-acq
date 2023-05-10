@@ -100,10 +100,13 @@ bool SQLiteWrapper::init_tables()
 
 bool SQLiteWrapper::verifyUserPassword(std::string user, std::string passwd)
 {
-    std::string queried_passwd = query_password_by_name(user);
-    if(passwd == queried_passwd)
-        return true;
-        
+    if (query_user_is_exist(user))
+    {
+        std::string queried_passwd = query_password_by_name(user);
+        if (passwd == queried_passwd)
+            return true;
+    }
+
     return false;
 }
 
@@ -149,4 +152,39 @@ std::string SQLiteWrapper::query_password_by_name(const std::string &name)
 
     sqlite3_finalize(stmt);
     return password;
+}
+
+bool SQLiteWrapper::query_user_is_exist(const std::string &user)
+{
+    bool isExist = false;
+    std::string sql_query = "SELECT * FROM users_passwd WHERE name = ?";
+    sqlite3_stmt *stmt;
+
+    if (sqlite3_prepare_v2(m_db, sql_query.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        Logger::getInstance().errorStream() << "无法准备查询语句: " << sqlite3_errmsg(m_db);
+        return "";
+    }
+
+    // 绑定参数（防止SQL注入攻击）
+    if (sqlite3_bind_text(stmt, 1, user.c_str(), -1, SQLITE_TRANSIENT) != SQLITE_OK)
+    {
+        Logger::getInstance().errorStream() << "无法绑定参数: " << sqlite3_errmsg(m_db);
+        sqlite3_finalize(stmt);
+        return "";
+    }
+
+    // 执行查询
+    int rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW)
+    {
+        isExist = true;
+    }
+    else if (rc != SQLITE_DONE)
+    {
+        Logger::getInstance().errorStream() << "查询执行错误: " << sqlite3_errmsg(m_db);
+    }
+
+    sqlite3_finalize(stmt);
+    return isExist;
 }

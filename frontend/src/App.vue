@@ -1,45 +1,19 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <!-- <HelloWorld msg="Welcome to Your Vue.js App"/> -->
-  <Login :onLogin="login"/>
+  <router-view></router-view>
 </template>
 
 
 <script>
 // import HelloWorld from './components/HelloWorld.vue'
-import axios from 'axios';
-import Login from './components/Login.vue'
+
+// import Login from './components/Login.vue'
 export default {
   name: 'App',
   components: {
     //HelloWorld,
-    Login
+    // Login
   },
   methods: {
-    async login(username,password)
-    {
-      try {
-        const response = await axios.post('http://127.0.0.1:8000/login',{
-          username:username,
-          password:password
-        });
-        console.log('发送数据');
-        if(response.status == 200)
-        {
-          console.log('登陆成功');
-          console.log(response.data["message"]);
-        }
-        if(response.status == 401)
-        {
-          console.log('登陆失败');
-          console.log(response.data["message"]);
-        }
-      } catch (error) {
-          console.error(error);
-          // 在这里处理登录失败后的逻辑，例如显示错误消息
-          alert('登录失败，请稍后重试。');
-      }
-    }
   }
 }
 

@@ -15,6 +15,7 @@ class SQLiteWrapper {
         bool init_tables();
         bool verifyUserPassword(std::string user,std::string passwd);
         std::string query_password_by_name(const std::string &name);
+        bool query_user_is_exist(const std::string &user);
     private:
         std::string m_db_name;
         sqlite3* m_db = nullptr;
