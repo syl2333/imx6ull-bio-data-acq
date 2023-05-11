@@ -3,7 +3,7 @@
       <v-card>
         <v-card-title class="headline">用户你好</v-card-title>
         <v-card-text>
-          <p>欢迎使用IMX6ULL心输出量监测系统！</p>
+          <p>欢迎使用IMX6ULL心输出量监测系统!</p>
           <p>本系统仍不完善，如有问题请联系我</p>
         </v-card-text>
         <v-card-actions>

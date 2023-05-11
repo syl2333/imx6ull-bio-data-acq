@@ -3,6 +3,9 @@ import axios from 'axios';
 import LoginBox from './components/Login.vue'
 import WelcomeDialog from './components/Welcome.vue';
 import HomeLanding from './components/Home.vue'
+import SmoothWaveformChart from "@/components/LineChart.vue"
+
+
 const login = async (router, username, password) => {
     try {
         const response = await axios.post('http://127.0.0.1:8000/login', {
@@ -38,6 +41,16 @@ const routes = [
         path: '/Home',
         name: 'Home',
         component: HomeLanding,
+        children: [
+            {
+                path: '',
+                redirect: '/Home/dashboard'
+            },
+            { 
+                path: 'dashboard', 
+                component: SmoothWaveformChart
+            }
+        ]
     },
     {
         path: '/Welcome',
