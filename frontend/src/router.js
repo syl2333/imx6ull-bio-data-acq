@@ -4,7 +4,8 @@ import LoginBox from './components/Login.vue'
 import WelcomeDialog from './components/Welcome.vue';
 import HomeLanding from './components/Home.vue'
 import SmoothWaveformChart from "@/components/LineChart.vue"
-
+import HistoryData from '@/components/HistoryData'
+import FeedBack from '@/components/FeedBack.vue'
 
 const login = async (router, username, password) => {
     try {
@@ -43,12 +44,20 @@ const routes = [
         component: HomeLanding,
         children: [
             {
-                path: '',
-                redirect: '/Home/dashboard'
+                path: '*',
+                redirect: '/Home/DashBoard'
             },
             { 
-                path: 'dashboard', 
+                path: 'DashBoard', 
                 component: SmoothWaveformChart
+            },
+            { 
+                path: 'HistoryData', 
+                component: HistoryData
+            },
+            {
+                path: 'FeedBack',
+                component: FeedBack
             }
         ]
     },

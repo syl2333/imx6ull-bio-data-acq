@@ -10,10 +10,10 @@
                 <v-divider></v-divider>
 
                 <v-list density="compact" nav>
-                    <v-list-item prepend-icon="fas fa-home" title="首页" value="myfiles" to="/Home/dashboard">
+                    <v-list-item prepend-icon="fas fa-home" title="首页" value="myfiles" to="/Home/DashBoard">
                     </v-list-item>
-                    <v-list-item prepend-icon="fas fa-plus" title="Shared with me" value="shared"></v-list-item>
-                    <v-list-item prepend-icon="fas fa-minus" title="Starred" value="starred"></v-list-item>
+                    <v-list-item prepend-icon="fas fa-table" title="历史数据" value="shared" to="/Home/HistoryData"></v-list-item>
+                    <v-list-item prepend-icon="fas fa-paper-plane" title="联系作者" value="starred" to="/Home/FeedBack"></v-list-item>
                 </v-list>
             </v-navigation-drawer>
         </v-layout>

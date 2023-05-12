@@ -23,7 +23,7 @@ export default {
             // 指定图表的配置项和数据
             const option = {
                 title: {
-                    text: 'Smooth Waveform'
+                    text: '平滑波形图'
                 },
                 tooltip: {
                     trigger: 'axis'
@@ -35,14 +35,56 @@ export default {
                 yAxis: {
                     type: 'value'
                 },
+                dataZoom: [
+                    {
+                        type: 'inside',
+                        xAxisIndex: 0,
+                        start: 0,
+                        end: 100
+                    },
+                    {
+                        type: 'inside',
+                        yAxisIndex: 0,
+                        start: 0,
+                        end: 100
+                    },
+                    {
+                        type: 'slider',
+                        start: 0,
+                        end: 10,
+                        handleIcon: 'M0,0 v9.7h5 v-9.7h-5 Z',
+                        handleSize: '80%',
+                        handleStyle: {
+                            color: '#fff',
+                            shadowBlur: 3,
+                            shadowColor: 'rgba(0, 0, 0, 0.6)',
+                            shadowOffsetX: 2,
+                            shadowOffsetY: 2
+                        }
+                    },
+                ],
                 series: [
                     {
-                        name: 'Waveform',
+                        name: '正弦函数',
                         type: 'line',
                         smooth: true,
-                        data: Array.from({ length: 100 }, () => Math.random() * 10),
+                        data: Array.from({ length: 100 }, (_,i) => Math.sin(2 * Math.PI * (i+1) /100)),
                         areaStyle: {}
-                    }
+                    },
+                    {
+                        name: '余弦函数',
+                        type: 'line',
+                        smooth: true,
+                        data: Array.from({ length: 100 }, (_,i) => Math.cos(2 * Math.PI * (i+1) /100)),
+                        areaStyle: {}
+                    },
+                    {
+                        name: '正切函数',
+                        type: 'line',
+                        smooth: true,
+                        data: Array.from({ length: 100 }, () => Math.random()),
+                        areaStyle: {}
+                    },
                 ]
             }
 
