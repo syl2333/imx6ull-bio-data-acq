@@ -1,14 +1,15 @@
 <template>
-  <SlideBar ></SlideBar>
-  
-  <v-mian>
-    <v-container>
-      
-      <router-view></router-view>
-    </v-container>
-  </v-mian>
-    
-  
+  <v-card >
+    <v-layout>
+      <SlideBar />
+
+      <v-main style="height: 900px;">
+        <v-container >
+          <router-view></router-view>
+        </v-container>
+      </v-main>
+    </v-layout>
+  </v-card>
 </template>
   
 <script>
@@ -33,8 +34,8 @@ export default {
 </script>
 
 <style scoped>
-.chart {
+/* .chart {
   height: 100vh;
-}
+} */
 </style>
   

@@ -1,13 +1,21 @@
 #include <iostream>
+#include <thread>
 #include "httplib.h"
 #include "sqlite3.h"
-
+#include "libserialport.h"
 #include "db.h"
 #include "log.h"
+#include "uart.h"
 
 #include "nlohmann/json.hpp"
 
 using json = nlohmann::json;
+
+
+std::mutex mtx;
+std::condition_variable cv; 
+bool run = false;
+
 
 void hello_handler(const httplib::Request &req, httplib::Response &res) {
     res.set_content("Hello, World!", "text/plain");
@@ -17,10 +25,21 @@ void hello_handler(const httplib::Request &req, httplib::Response &res) {
 
 int main()
 {
-    //log4cpp_init();
-    Logger::getInstance().info("This is an info log message.");
+    Logger::getInstance().info("加载CH340驱动");
     SQLiteWrapper db("local.db");
     db.init_tables();
+
+    Sensor ecg_ppg_sensor("/dev/ttyCH341USB0");
+    ecg_ppg_sensor.open();
+
+    std::thread uart_acquire_thread(&Sensor::acquire,&ecg_ppg_sensor);
+    std::thread uart_process_thread(&Sensor::process,&ecg_ppg_sensor);
+    ecg_ppg_sensor.start();
+
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+
+    ecg_ppg_sensor.stop();
+
 
     json parsedBody;
  
@@ -72,9 +91,14 @@ int main()
         res.set_content(responseJson.dump().c_str(), "application/json");
         return res;
     });
-    std::cout << "httplib listening on http://127.0.0.1:8000" << std::endl;
-    Server.listen("localhost",8000);
 
+    
+
+
+    std::cout << "httplib listening on http://192.168.123.25:8000" << std::endl;
+    Server.listen("192.168.123.25",8000);
+   
+    
 
     return 0;
 }

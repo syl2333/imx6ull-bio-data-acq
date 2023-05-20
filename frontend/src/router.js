@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import axios from 'axios';
-import LoginBox from './components/Login.vue'
+import axios from 'axios';import LoginBox from './components/Login.vue'
 import WelcomeDialog from './components/Welcome.vue';
 import HomeLanding from './components/Home.vue'
 import SmoothWaveformChart from "@/components/LineChart.vue"
@@ -9,7 +8,8 @@ import FeedBack from '@/components/FeedBack.vue'
 
 const login = async (router, username, password) => {
     try {
-        const response = await axios.post('http://127.0.0.1:8000/login', {
+        // 开发板的IP地址
+        const response = await axios.post('http://192.168.123.25:8000/login', {
             username: username,
             password: password
         });
