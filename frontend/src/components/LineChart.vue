@@ -5,15 +5,49 @@
 <script>
 import { ref, onMounted, onBeforeUnmount,onUnmounted } from 'vue'
 import * as echarts from 'echarts'
-
+import axios from 'axios';
 export default {
     name: 'SmoothWaveformChart',
     setup() {
         const chartRef = ref(null)
         let chartInstance = null
+        let timer = null
 
         const resizeHandler = () => {
             chartInstance.resize();
+        }
+
+        const getData = async () => {
+            const response = await axios.get('http://192.168.123.25:8000/data')
+            const data = response.data
+            if(data['status'] === 'ok')
+            {
+                console.log("获取到数据")
+                console.log(data.ecg_data[0]);
+                const option = {
+                    series: [
+                        // {
+                        //     name: 'ECG数据',
+                        //     type: 'line',
+                        //     smooth: false,
+                        //     data: data.ecg_data,
+                        //     areaStyle: {}
+                        // },
+                        {
+                            name: 'PPG数据',
+                            type: 'line',
+                            smooth: false,
+                            data: data.ppg_data,
+                            areaStyle: {}
+                        }
+                    ]
+                }
+                chartInstance.setOption(option)
+            }
+            else
+            {
+                console.log("暂未获取到数据")
+            }
         }
 
         onMounted(() => {
@@ -23,14 +57,14 @@ export default {
             // 指定图表的配置项和数据
             const option = {
                 title: {
-                    text: '平滑波形图'
+                    text: 'PPG波形图'
                 },
                 tooltip: {
                     trigger: 'axis'
                 },
                 xAxis: {
                     type: 'category',
-                    data: Array.from({ length: 100 }, (_, i) => i + 1)
+                    data: Array.from({ length: 255 }, (_, i) => i + 1)
                 },
                 yAxis: {
                     type: 'value'
@@ -63,33 +97,12 @@ export default {
                         }
                     },
                 ],
-                series: [
-                    {
-                        name: '正弦函数',
-                        type: 'line',
-                        smooth: true,
-                        data: Array.from({ length: 100 }, (_,i) => Math.sin(2 * Math.PI * (i+1) /100)),
-                        areaStyle: {}
-                    },
-                    {
-                        name: '余弦函数',
-                        type: 'line',
-                        smooth: true,
-                        data: Array.from({ length: 100 }, (_,i) => Math.cos(2 * Math.PI * (i+1) /100)),
-                        areaStyle: {}
-                    },
-                    {
-                        name: '正切函数',
-                        type: 'line',
-                        smooth: true,
-                        data: Array.from({ length: 100 }, () => Math.random()),
-                        areaStyle: {}
-                    },
-                ]
             }
 
             // 使用刚指定的配置项和数据显示图表。
             chartInstance.setOption(option)
+
+            timer = setInterval(getData, 100)
 
             window.addEventListener('resize', resizeHandler)
         })
@@ -101,6 +114,7 @@ export default {
         })
         onUnmounted(() => {
             window.removeEventListener('resize', resizeHandler)
+            clearInterval(timer)
         })
 
         return {

@@ -75,8 +75,8 @@ void Sensor::acquire()
             }
             else
             {
-                Logger::getInstance().infoStream() << "接收到校验和" << static_cast<int>(sum);
-                Logger::getInstance().infoStream() << "PPG数据是" << std::stoi(num_str);
+                // Logger::getInstance().infoStream() << "接收到校验和" << static_cast<int>(sum);
+                // Logger::getInstance().infoStream() << "PPG数据是" << std::stoi(num_str);
                 int num;
                 try {
                     num = std::stoi(num_str);
@@ -104,7 +104,7 @@ void Sensor::acquire()
                 {
                     std::lock_guard<std::mutex> lock(proc_mtx);
                     ready = true;
-                    Logger::getInstance().info("两个缓冲区都满了，可以进行下一步处理");
+                    Logger::getInstance().info("数据采集完成，进行下一步信号处理");
                 }
                 cv.notify_all();
                 break;
@@ -124,7 +124,6 @@ void Sensor::process()
         std::unique_lock<std::mutex> lock(proc_mtx);
         cv.wait(lock,[this]{return ready;});
 
-        ok = false;
 
         static double ecg_factor = (1000 * 1.2 * 3.77) / std::pow(2,24);
         static double ppg_factor = 1.024 / std::pow(2,24);
@@ -181,20 +180,19 @@ void Sensor::process()
 
         ready = false;
         ok = true;
+        Logger::getInstance().info("信号处理完成，进行下一步数据显示");
     }
 }
 
-int Sensor::return_data(double* ecg_ptr, double* ppg_ptr)
+void Sensor::return_data(double* ecg_ptr, double* ppg_ptr)
 {
     std::unique_lock<std::mutex> lock(proc_mtx);
-    if(cv.wait_for(lock,std::chrono::milliseconds(500),[this]{return ok;}))
-    {
-        return -1;
-    }
+    cv.wait(lock,[this]{return ok;});
 
+    ok = false;
     std::copy(ecg_processed,ecg_processed + 256,ecg_ptr);
     std::copy(ppg_processed,ppg_processed + 256,ppg_ptr);
-    return 0;
+    Logger::getInstance().info("数据显示");
 }
 
 

@@ -80,7 +80,7 @@ public:
     }
     void acquire();
     void process();
-    int return_data(double*,double*);
+    void return_data(double*,double*);
     void start();
     void stop();
 };

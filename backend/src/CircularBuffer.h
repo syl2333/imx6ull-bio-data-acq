@@ -58,7 +58,7 @@ public:
     }
 
     bool full() const {
-        Logger::getInstance().infoStream() << "缓冲区实际大小：" << size();
+        // Logger::getInstance().infoStream() << "缓冲区实际大小：" << size();
         return size() == max_size_;
     }
 

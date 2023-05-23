@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import axios from 'axios';import LoginBox from './components/Login.vue'
+import axios from 'axios';
+import LoginBox from './components/Login.vue'
 import WelcomeDialog from './components/Welcome.vue';
 import HomeLanding from './components/Home.vue'
 import SmoothWaveformChart from "@/components/LineChart.vue"

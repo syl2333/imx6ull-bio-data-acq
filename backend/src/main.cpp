@@ -97,19 +97,12 @@ int main()
         static double ecg_data[256] = {0};
         static double ppg_data[256] = {0};
 
-        int ret;
         //最多等待500ms
-        ret = ecg_ppg_sensor.return_data(ecg_data,ppg_data);
-        if(ret == -1)
-        {
-            responseJson["status"] = "fail";
-        }
-        else
-        {
-            responseJson["status"] = "ok";
-            responseJson["ecg_data"] = ecg_data;
-            responseJson["ppg_data"] = ppg_data;
-        }
+        ecg_ppg_sensor.return_data(ecg_data,ppg_data);
+        
+        responseJson["status"] = "ok";
+        responseJson["ecg_data"] = ecg_data;
+        responseJson["ppg_data"] = ppg_data;
         
 
         res.set_content(responseJson.dump().c_str(), "application/json");
