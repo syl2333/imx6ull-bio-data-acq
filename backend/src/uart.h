@@ -27,20 +27,22 @@ class Sensor
 private:
     struct sp_port *port;
     std::string portName;
+    int size_;
     CircularBuffer ecg_buffer;
     CircularBuffer ppg_buffer;
-    double ecg_processed[1024] = {0};
-    double ppg_processed[1024] = {0};
+    double ecg_processed[256] = {0};
+    double ppg_processed[256] = {0};
     std::mutex run_mtx;
     std::mutex proc_mtx;
     std::condition_variable cv; 
     bool run = false;
     bool ready = false;
-    
+    bool ok = false;
+
     Sensor_State state;
 public:
     // 构造函数，设置串口名
-    Sensor(const std::string &portName) : portName(portName), state(Sensor_State::HEADER),ecg_buffer(1024),ppg_buffer(1024) {}
+    Sensor(const std::string &portName,int size) : portName(portName), state(Sensor_State::HEADER),size_(size),ecg_buffer(size),ppg_buffer(size) {}
 
     // 打开串口
     bool open()
@@ -72,8 +74,13 @@ public:
         sp_free_port(port);
     }
 
+    int size()
+    {
+        return size_;
+    }
     void acquire();
     void process();
+    int return_data(double*,double*);
     void start();
     void stop();
 };

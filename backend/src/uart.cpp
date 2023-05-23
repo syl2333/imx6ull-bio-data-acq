@@ -46,15 +46,16 @@ void Sensor::acquire()
                 // Logger::getInstance().info("接收到中间帧数据");
                 sum += 0x0D;
                 // Logger::getInstance().infoStream() << "ECG数据是" << std::stoi(num_str);
-                
+                int num;
                 try {
-                    ecg_buffer.put(std::stoi(num_str));
+                    num = std::stoi(num_str);
                 } catch (std::invalid_argument& e) {
                     Logger::getInstance().errorStream() << "参数异常： " << e.what();
                 } catch (std::exception& e) {
                     // 处理其他可能的异常
                     Logger::getInstance().errorStream() << "其他错误发生； " << e.what();
                 }
+                ecg_buffer.put(num);
                 num_str.clear();
                 state = Sensor_State::PPG_DATA;
                 break;
@@ -76,15 +77,16 @@ void Sensor::acquire()
             {
                 Logger::getInstance().infoStream() << "接收到校验和" << static_cast<int>(sum);
                 Logger::getInstance().infoStream() << "PPG数据是" << std::stoi(num_str);
-                
+                int num;
                 try {
-                    ppg_buffer.put(std::stoi(num_str));
+                    num = std::stoi(num_str);
                 } catch (std::invalid_argument& e) {
                     Logger::getInstance().errorStream() << "参数异常： " << e.what();
                 } catch (std::exception& e) {
                     // 处理其他可能的异常
                     Logger::getInstance().errorStream() << "其他错误发生； " << e.what();
                 }
+                ppg_buffer.put(num);
                 num_str.clear();
                 state = Sensor_State::TAIL;
                 break;
@@ -122,62 +124,80 @@ void Sensor::process()
         std::unique_lock<std::mutex> lock(proc_mtx);
         cv.wait(lock,[this]{return ready;});
 
+        ok = false;
+
         static double ecg_factor = (1000 * 1.2 * 3.77) / std::pow(2,24);
         static double ppg_factor = 1.024 / std::pow(2,24);
 
-        static size_t p[1024];
-        static double abscoeff[1024];
+        static size_t p[256];
+        static double abscoeff[256];
         static gsl_wavelet *w = gsl_wavelet_alloc(gsl_wavelet_daubechies, 8);
-        static gsl_wavelet_workspace *work = gsl_wavelet_workspace_alloc(1024);
+        static gsl_wavelet_workspace *work = gsl_wavelet_workspace_alloc(256);
 
         Logger::getInstance().info("处理线程开始工作");
 
         std::vector<int> ecg_vec_int = ecg_buffer.copy_all();
         std::vector<int> ppg_vec_int = ppg_buffer.copy_all();
 
-        for(int i = 0;i < 1024;i++)
+        for(int i = 0;i < 256;i++)
         {
             double d_val = static_cast<double>(ecg_vec_int[i]);
             d_val = (d_val * 2.3 * ecg_factor) / 60;
             ecg_processed[i] = d_val;
         }
 
-        for(int i = 0;i < 1024;i++)
+        for(int i = 0;i < 256;i++)
         {
             double d_val = static_cast<double>(ppg_vec_int[i]);
             d_val = (d_val * 2.3 * ecg_factor) / 60;
             ppg_processed[i] = d_val;
         }
 
-        std::ofstream original_file("original.txt", std::ios::out);
-        std::ofstream transformed_file("transformed.txt", std::ios::out);
-        for(int i =0;i < 1024;i++)
-        {
-            original_file << ecg_processed[i] << "\n";
-        }
-
-        gsl_wavelet_transform_forward(w,ecg_processed,1,1024,work);
-        for (int i = 0; i < 1024; i++)
+        gsl_wavelet_transform_forward(w,ecg_processed,1,256,work);
+        for (int i = 0; i < 256; i++)
         {
             abscoeff[i] = fabs (ecg_processed[i]);
         }
-        gsl_sort_index (p, abscoeff, 1, 1024);
+        gsl_sort_index (p, abscoeff, 1, 256);
 
-        for (int i = 0; (i + 20) < 1024; i++)
+        for (int i = 0; (i + 20) < 256; i++)
             ecg_processed[p[i]] = 0;
 
-        gsl_wavelet_transform_inverse(w,ecg_processed,1,1024,work);
+        gsl_wavelet_transform_inverse(w,ecg_processed,1,256,work);
 
-        for(int i =0;i < 1024;i++)
+
+
+        gsl_wavelet_transform_forward(w,ppg_processed,1,256,work);
+        for (int i = 0; i < 256; i++)
         {
-            transformed_file << ecg_processed[i] << "\n";
+            abscoeff[i] = fabs (ppg_processed[i]);
         }
-        
-        original_file.close();
-        transformed_file.close();
+        gsl_sort_index (p, abscoeff, 1, 256);
+
+        for (int i = 0; (i + 20) < 256; i++)
+            ppg_processed[p[i]] = 0;
+
+        gsl_wavelet_transform_inverse(w,ppg_processed,1,256,work);
+
         ready = false;
+        ok = true;
     }
 }
+
+int Sensor::return_data(double* ecg_ptr, double* ppg_ptr)
+{
+    std::unique_lock<std::mutex> lock(proc_mtx);
+    if(cv.wait_for(lock,std::chrono::milliseconds(500),[this]{return ok;}))
+    {
+        return -1;
+    }
+
+    std::copy(ecg_processed,ecg_processed + 256,ecg_ptr);
+    std::copy(ppg_processed,ppg_processed + 256,ppg_ptr);
+    return 0;
+}
+
+
 
 void Sensor::start()
 {
